@@ -87,7 +87,7 @@ launchsvc = os.path.expanduser('~/Library/Preferences/com.apple.LaunchServices/c
 if os.path.isfile(launchsvc):
 
     import plistlib
-    
+
     try:
         # parse LaunchServices plist
         plistData = plistlib.readPlistFromString(subprocess.check_output(['/usr/bin/plutil',
@@ -96,22 +96,26 @@ if os.path.isfile(launchsvc):
                                                                               '-o',
                                                                               '-', launchsvc]))
 
-        # find handler for http scheme
-        httpHandler = None
-        for handler in plistData['LSHandlers']:
-            if (handler.has_key('LSHandlerURLScheme') and
-                (handler['LSHandlerURLScheme'] == 'http')):
-                httpHandler = handler['LSHandlerRoleAll']
-                break
+        httpHandler = next(
+            (
+                handler['LSHandlerRoleAll']
+                for handler in plistData['LSHandlers']
+                if (
+                    handler.has_key('LSHandlerURLScheme')
+                    and (handler['LSHandlerURLScheme'] == 'http')
+                )
+            ),
+            None,
+        )
 
         # if it's Chrome, set a flag
         if httpHandler.lower() == 'com.google.chrome':
             defaultIsChrome = True
-            
+
     except: # subprocess.CalledProcessError + plistlib err
         pass
 
-    
+
 # MAIN LOOP -- just keep on receiving messages until stdin closes
 while True:
     message = receive_message()
@@ -124,7 +128,7 @@ while True:
                      '"ssbID": "%s", '+
                      '"ssbName": "%s", '+
                      '"ssbShortName": "%s" }') % (version, ssbid, ssbname, ssbshortname))
-    
+
     if 'url' in message:
         # open the url
 
@@ -140,10 +144,10 @@ while True:
             # use python webbrowser module
             else:
                 webbrowser.open(message['url'])
-                
+
         except:  # webbrowser.Error or subprocess.CalledProcessError
             send_result("error", message['url'])
         else:
             send_result("success", message['url'])
-            
+
 exit(0)

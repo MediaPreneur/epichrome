@@ -147,17 +147,18 @@ def plist_filter(root):
 def output(root):
     
     # print out this element
-    result = '<' + root.tag
-    for k, v in root.attrib.iteritems(): result += ' ' + k + '="' + v + '"'
+    result = f'<{root.tag}'
+    for k, v in root.attrib.iteritems():
+        result += f' {k}' + '="' + v + '"'
     if (len(root) == 0) and (not root.text):
         result += '/>'
     else:
         result += '>'
         if root.text: result += root.text
         for child in root: result += output(child)
-        result += '</' + root.tag + '>'
+        result += f'</{root.tag}>'
     if root.tail: result += root.tail
-    
+
     return result
 
 
